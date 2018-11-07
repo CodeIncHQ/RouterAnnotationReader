@@ -1,6 +1,6 @@
 {
   "name": "codeinc/router-annotation-resolver",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A Code Inc.'s router resolver using Doctrine's annotation system to detect and configure request handlers",
   "homepage": "https://github.com/CodeIncHQ/RouterAnnotationResolver",
   "type": "library",
