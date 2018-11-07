@@ -1,13 +1,13 @@
 {
   "name": "codeinc/router-annotation-resolver",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A Code Inc.'s router resolver using Doctrine's annotation system to detect and configure request handlers",
   "homepage": "https://github.com/CodeIncHQ/RouterAnnotationResolver",
   "type": "library",
   "license": "MIT",
   "require": {
     "php": ">=7.1",
-    "codeinc/router": "^3.4",
+    "codeinc/router": "^4",
     "codeinc/directory-classes-iterator": "^1.0",
     "doctrine/annotations": "^1.6",
     "doctrine/cache": "^1.8"
@@ -15,7 +15,7 @@
   "require-dev": {
     "phpunit/phpunit": "^7",
     "codeinc/error-renderer": "^1.2",
-    "codeinc/router": "3.x@dev"
+    "codeinc/router": "4.x@dev"
   },
   "autoload": {
     "psr-4": {"CodeInc\\RouterAnnotationResolver\\": "src/"}

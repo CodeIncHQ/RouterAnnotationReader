@@ -20,8 +20,10 @@
 //
 declare(strict_types=1);
 namespace CodeInc\RouterAnnotationResolver;
+use CodeInc\DirectoryClassesIterator\DirectoryClassesIterator;
 use CodeInc\DirectoryClassesIterator\RecursiveDirectoryClassesIterator;
-use CodeInc\Router\Resolvers\StaticHandlerResolver;
+use CodeInc\Router\Resolvers\StaticResolver;
+use CodeInc\RouterAnnotationResolver\Exception\MissingRoutableAnnotationException;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\CachedReader;
 use Doctrine\Common\Annotations\Reader;
@@ -34,7 +36,7 @@ use Doctrine\Common\Cache\ArrayCache;
  * @package CodeInc\RouterAnnotationResolver
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-class AnnotationResolver extends StaticHandlerResolver
+class AnnotationResolver extends StaticResolver
 {
     /**
      * @var string
@@ -61,22 +63,56 @@ class AnnotationResolver extends StaticHandlerResolver
     }
 
     /**
+     * Adds an annotated controller.
+     *
+     * @param string $controllerClass
+     * @throws \ReflectionException
+     */
+    public function addController(string $controllerClass):void
+    {
+        /** @var Routable $annotation */
+        $annotation = $this->annotationReader->getClassAnnotation(
+            new \ReflectionClass($controllerClass),
+            Routable::class
+        );
+        if ($annotation === null) {
+            throw new MissingRoutableAnnotationException($controllerClass);
+        }
+        $this->add($annotation, $controllerClass);
+    }
+
+    /**
+     * @param Routable $routableAnnotation
+     * @param string $controllerClass
+     */
+    private function add(Routable $routableAnnotation, string $controllerClass):void
+    {
+
+        $this->addRoute($this->routePrefix.$routableAnnotation->route, $controllerClass);
+        if ($routableAnnotation->altRoutes) {
+            foreach ($routableAnnotation->altRoutes as $route) {
+                $this->addRoute($this->routePrefix.$route, $controllerClass);
+            }
+        }
+    }
+
+    /**
      * Adds all the handler in a directory having the annotation @Routable.
      *
      * @param string $dirPath
+     * @param bool $recursively
      */
-    public function addDirectory(string $dirPath):void
+    public function addDirectory(string $dirPath, bool $recursively = true):void
     {
-        foreach (new RecursiveDirectoryClassesIterator($dirPath) as $class)
+        $iterator = $recursively
+            ? new RecursiveDirectoryClassesIterator($dirPath)
+            : new DirectoryClassesIterator($dirPath);
+
+        foreach ($iterator as $class)
         {
             /** @var Routable $annotation */
-            if ($annotation = $this->annotationReader->getClassAnnotation($class, Routable::class)) {
-                $this->addRoute($this->routePrefix.$annotation->route, $class->getName());
-                if ($annotation->altRoutes) {
-                    foreach ($annotation->altRoutes as $route) {
-                        $this->addRoute($this->routePrefix.$route, $class->getName());
-                    }
-                }
+            if (($annotation = $this->annotationReader->getClassAnnotation($class, Routable::class)) !== null) {
+                $this->add($annotation, $class->getName());
             }
         }
     }
